@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACLEDA App Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night-top:#1c2e4d;
+    --night-mid:#101d34;
+    --night-bottom:#070d18;
+    --gold:#d8ae4d;
+    --gold-soft:#eccf7d;
+    --gold-deep:#b8863a;
+    --card-glass: rgba(14,19,31,0.55);
+    --card-border: rgba(216,174,77,0.55);
+    --text-primary:#ffffff;
+    --text-secondary: rgba(255,255,255,0.72);
+    --accent-red:#e0402c;
+    --paper:#fdf9ee;
+    --ink:#1c2b4a;
+    --ink-soft:#5a6a85;
+    --font-body: 'Poppins','Noto Sans Khmer', system-ui, -apple-system, sans-serif;
+    --font-khmer: 'Noto Sans Khmer','Poppins', system-ui, sans-serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; }
+  body{
+    font-family: var(--font-body);
+    background:#05070c;
+    color: var(--text-primary);
+    display:flex; justify-content:center; align-items:flex-start;
+    padding: 30px 10px;
+  }
+
+  .device{ width:390px; height:844px; max-width:100%; background:#000; border-radius:44px; padding:10px; box-shadow:0 30px 60px rgba(0,0,0,0.6); }
+  .app{ position:relative; width:100%; height:100%; border-radius:34px; overflow:hidden; background: var(--night-bottom); }
+
+  .screen{ position:absolute; inset:0; display:none; flex-direction:column; overflow-y:auto; overflow-x:hidden; }
+  .screen.active{ display:flex; }
+  .screen::-webkit-scrollbar{ display:none; }
+
+  /* ===== background scene ===== */
+  .bg-scene{ position:absolute; inset:0; background: linear-gradient(180deg, var(--night-top) 0%, var(--night-mid) 45%, var(--night-bottom) 100%); overflow:hidden; z-index:0; }
+  .bg-scene .stars{ position:absolute; inset:0; }
+  .bg-scene .stars i{ position:absolute; width:2px; height:2px; background:#fff; border-radius:50%; opacity:0.7; }
+  .bunting{ position:absolute; top:-6px; left:-20px; right:-20px; height:70px; }
+  .temple{ position:absolute; bottom:26%; left:50%; transform:translateX(-50%); width:260px; opacity:0.55; }
+  .foliage-l{ position:absolute; top:-10px; left:-30px; width:170px; opacity:0.9; }
+  .foliage-r{ position:absolute; top:-16px; right:-40px; width:190px; opacity:0.9; }
+
+  /* ===== status bar ===== */
+  .statusbar{ position:relative; z-index:3; display:flex; justify-content:space-between; align-items:center; padding:16px 26px 4px; font-size:15px; font-weight:600; color:#fff; }
+  .status-icons{ display:flex; align-items:center; gap:6px; }
+
+  /* ===== header ===== */
+  .header{ position:relative; z-index:3; display:flex; justify-content:space-between; align-items:center; padding:14px 20px 0; }
+  .brand{ display:flex; align-items:center; gap:8px; }
+  .brand-text{ font-family: var(--font-khmer); font-weight:700; font-size:16px; letter-spacing:0.3px; color:#fff; line-height:1.15; }
+  .brand-text small{ display:block; font-family: var(--font-body); font-size:8px; letter-spacing:2.5px; color:var(--gold-soft); font-weight:600; margin-top:3px; }
+  .header-icons{ display:flex; gap:12px; align-items:center; }
+  .icon-circle{ width:38px; height:38px; border-radius:50%; background: rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; position:relative; cursor:pointer; border:none; color:#fff; }
+  .icon-circle .dot{ position:absolute; top:6px; right:6px; width:7px; height:7px; background:var(--accent-red); border-radius:50%; }
+  .icon-square{ width:38px; height:38px; border-radius:11px; background: var(--accent-red); display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; color:#fff; }
+
+  /* ===== greeting ===== */
+  .greeting{ position:relative; z-index:3; display:flex; align-items:center; gap:14px; padding:18px 20px 0; }
+  .avatar{ width:54px; height:54px; border-radius:50%; background: radial-gradient(circle at 35% 30%, #a959e0, #7d2fb8); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:17px; position:relative; flex-shrink:0; }
+  .avatar .dot{ position:absolute; top:0; right:0; width:11px; height:11px; background:var(--accent-red); border:2px solid var(--night-bottom); border-radius:50%; }
+  .greeting h1{ font-size:20px; font-weight:700; }
+  .greeting a{ font-size:12.5px; color:var(--text-secondary); text-decoration:none; }
+
+  /* ===== balance card ===== */
+  .balance-card{ position:relative; z-index:3; margin:16px 20px 0; background: var(--card-glass); border:1px solid var(--card-border); border-radius:20px; padding:24px 20px; backdrop-filter: blur(6px); cursor:pointer; }
+  .balance-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .ring{ width:104px; height:104px; border-radius:50%; padding:4px; background: conic-gradient(var(--gold) 0deg, var(--gold) var(--ring-pct, 180deg), rgba(255,255,255,0.85) var(--ring-pct, 180deg), rgba(255,255,255,0.85) 360deg); display:flex; align-items:center; justify-content:center; transition: background 0.4s ease; }
+  .ring .inner-circle{ width:100%; height:100%; border-radius:50%; background: var(--night-mid); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; }
+  .ring span{ font-size:11.5px; font-weight:600; }
+  .balance-label{ font-size:14px; color:var(--text-secondary); }
+  .eye-btn{ width:32px; height:32px; border-radius:50%; background:var(--gold); color:#1a1400; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; }
+  .home-figures{ margin-top:16px; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .hf-line{ display:flex; align-items:center; gap:8px; font-size:17px; font-weight:700; color:var(--gold-soft); filter: blur(6px); transition: filter .2s ease; user-select:none; }
+  .home-figures.revealed .hf-line{ filter:none; }
+  .hf-sym{ width:22px; height:22px; border-radius:50%; border:1.4px solid var(--gold-soft); display:inline-flex; align-items:center; justify-content:center; font-size:12px; }
+
+  /* ===== grids ===== */
+  .grid-2{ position:relative; z-index:3; display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 20px 0; }
+  .grid-3{ position:relative; z-index:3; display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:12px 20px 0; }
+  .tile{ background: var(--card-glass); border:1px solid var(--card-border); border-radius:15px; padding:18px 8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; font-size:13.5px; font-weight:500; color:#fff; cursor:pointer; transition: transform .12s ease, background .12s ease; }
+  .tile:active{ transform:scale(0.96); background:rgba(216,174,77,0.15); }
+  .tile.wide{ flex-direction:row; justify-content:flex-start; gap:12px; padding:16px 16px; font-size:15px; }
+  .tile-icon{ color:var(--gold-soft); display:flex; }
+
+  .shortcuts{ position:relative; z-index:3; display:flex; gap:16px; overflow-x:auto; padding:14px 20px 4px; }
+  .shortcut{ display:flex; flex-direction:column; align-items:center; gap:7px; flex:0 0 auto; width:64px; cursor:pointer; }
+  .shortcut-icon{ width:56px; height:56px; border-radius:15px; border:1px solid var(--card-border); background:var(--card-glass); display:flex; align-items:center; justify-content:center; }
+  .shortcut span{ font-size:10.5px; text-align:center; color:var(--text-secondary); line-height:1.2; }
+  .section-title{ position:relative; z-index:3; font-size:18px; font-weight:700; margin:14px 20px 90px; }
+
+  /* ===== bottom nav ===== */
+  .bottom-nav{ position:absolute; left:0; right:0; bottom:0; z-index:6; background: rgba(8,12,20,0.92); border-top:1px solid rgba(216,174,77,0.3); display:flex; justify-content:space-around; padding:10px 0 22px; }
+  .nav-item{ display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10.5px; color:var(--text-secondary); background:none; border:none; cursor:pointer; }
+  .nav-item.active{ color:var(--gold); }
+  .nav-item.light{ color:var(--ink-soft); }
+  .nav-item.light.active{ color:#2f6fed; }
+
+  .icon{ display:inline-block; width:23px; height:23px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .icon-lg{ width:27px; height:27px; }
+  .icon-sm{ width:17px; height:17px; }
+  .header-icons .icon{ width:19px; height:19px; }
+  .ring .icon{ width:30px; height:30px; }
+  .eye-btn .icon{ width:16px; height:16px; }
+
+  /* ===== scan screen ===== */
+  #screen-scan{ background:#000; }
+  #qr-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; display:none; background:#000; }
+  #qr-video.on{ display:block; }
+  .scan-top{ position:relative; z-index:3; display:flex; justify-content:space-between; align-items:center; padding:16px 20px 0; }
+  .scan-title{ display:flex; align-items:center; gap:8px; font-size:19px; font-weight:600; color:#fff; }
+  .scan-back{ width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; border:none; color:#fff; cursor:pointer; }
+  .scan-frame-wrap{ position:relative; z-index:2; flex:1; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .scan-frame{ width:78%; aspect-ratio:1/1.1; position:relative; }
+  .corner{ position:absolute; width:46px; height:46px; border:5px solid var(--gold); }
+  .corner.tl{ top:0; left:0; border-right:none; border-bottom:none; border-top-left-radius:14px; }
+  .corner.tr{ top:0; right:0; border-left:none; border-bottom:none; border-top-right-radius:14px; }
+  .corner.bl{ bottom:0; left:0; border-right:none; border-top:none; border-bottom-left-radius:14px; }
+  .corner.br{ bottom:0; right:0; border-left:none; border-top:none; border-bottom-right-radius:14px; }
+  .scan-line{ position:absolute; left:6%; right:6%; height:2px; top:8%; background: linear-gradient(90deg, transparent, var(--gold-soft), transparent); animation: scanmove 2.2s ease-in-out infinite; box-shadow:0 0 8px 1px var(--gold-soft); }
+  @keyframes scanmove{ 0%{top:8%;} 50%{top:88%;} 100%{top:8%;} }
+  .scan-hint{ position:relative; z-index:2; text-align:center; color:rgba(255,255,255,0.55); font-size:12px; margin-top:14px; padding:0 24px; }
+  .accepted{ position:relative; z-index:2; text-align:center; margin-top:10px; }
+  .accepted h4{ font-size:14px; font-weight:600; color:#fff; margin-bottom:12px; }
+  .badge-row{ display:flex; justify-content:center; flex-wrap:wrap; gap:9px; padding:0 30px; margin-bottom:6px; }
+  .badge{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:7.5px; font-weight:800; color:#fff; overflow:hidden; letter-spacing:0.2px; text-align:center; line-height:1.05; }
+  .scan-actions{ position:relative; z-index:2; display:flex; justify-content:center; gap:70px; padding:18px 0 26px; }
+  .scan-action{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .scan-action button{ width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,0.12); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .scan-action span{ font-size:11.5px; font-weight:600; color:#fff; }
+  .flash-overlay{ position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:9; transition:opacity .12s ease; }
+  .flash-overlay.flash{ opacity:0.85; }
+
+  /* ===== pay screen ===== */
+  .pay-topbar{ position:relative; z-index:3; display:flex; justify-content:space-between; align-items:center; padding:16px 20px 0; }
+  .pay-person{ position:relative; z-index:2; text-align:center; padding:22px 20px 0; }
+  .pay-avatar{ width:96px; height:96px; border-radius:50%; margin:0 auto 12px; background: radial-gradient(circle at 35% 30%, #a959e0, #7d2fb8); display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:700; color:#fff; }
+  .pay-name{ font-size:16px; font-weight:700; letter-spacing:0.5px; color:#fff; text-transform:uppercase; margin-bottom:16px; word-break:break-word; padding:0 10px; }
+  .pay-quicklinks{ display:flex; justify-content:center; gap:14px; margin-bottom:18px; }
+  .quicklink{ display:flex; flex-direction:column; align-items:center; gap:8px; width:74px; cursor:pointer; }
+  .quicklink .box{ width:56px; height:56px; border-radius:14px; background:rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; }
+  .quicklink span{ font-size:11.5px; color:#fff; }
+  .pay-from-row{ display:flex; justify-content:space-between; align-items:center; padding:0 20px 4px; position:relative; z-index:2; }
+  .pay-from-row .label{ font-size:14px; color:rgba(255,255,255,0.85); }
+  .pay-from-row .value{ display:flex; align-items:center; gap:6px; font-size:16px; font-weight:700; color:#fff; cursor:pointer; }
+  .pay-balance-row{ display:flex; justify-content:flex-end; align-items:center; gap:8px; padding:2px 20px 14px; position:relative; z-index:2; }
+  .pay-balance-row .amt{ font-size:16px; font-weight:700; color:#fff; }
+  .mask-btn{ width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,0.18); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+
+  .keypad-sheet{ position:relative; z-index:2; margin-top:auto; background:var(--paper); border-radius:26px 26px 0 0; padding:22px 20px 26px; color:var(--ink); }
+  .amount-pill{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:#fbf3dd; border:1.5px solid var(--gold); border-radius:30px; padding:14px 20px; margin-bottom:16px; cursor:pointer; }
+  .amount-pill .val{ font-size:24px; font-weight:700; color:var(--ink); letter-spacing:0.5px; }
+  .amount-pill .cur{ font-size:20px; color:var(--gold-deep); font-weight:700; }
+  .keys{ display:grid; grid-template-columns:repeat(3,1fr); }
+  .key{ padding:14px 0; text-align:center; font-size:24px; font-weight:600; color:var(--ink); background:none; border:none; border-bottom:1px solid rgba(28,43,74,0.08); cursor:pointer; }
+  .key:nth-child(3n+1){ border-right:1px solid rgba(28,43,74,0.08); }
+  .key:nth-child(3n+2){ border-right:1px solid rgba(28,43,74,0.08); }
+  .pay-now-btn{ width:100%; margin-top:16px; padding:16px; border:none; border-radius:26px; cursor:pointer; background: linear-gradient(180deg, var(--gold-soft), var(--gold)); color:#33260a; font-size:17px; font-weight:700; }
+
+  /* ===== sheets ===== */
+  .sheet-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,0.45); z-index:20; display:none; }
+  .sheet-backdrop.open{ display:block; }
+  .sheet{ position:absolute; left:0; right:0; bottom:0; z-index:21; background:var(--paper); border-radius:22px 22px 0 0; padding:0 0 22px; transform:translateY(110%); transition:transform .25s ease; max-height:80%; overflow-y:auto; }
+  .sheet.open{ transform:translateY(0); }
+  .sheet-handle{ width:36px; height:4px; background:rgba(28,43,74,0.2); border-radius:3px; margin:10px auto 4px; }
+  .sheet-header{ background: linear-gradient(180deg, var(--gold-soft), var(--gold)); color:#33260a; text-align:center; font-weight:700; font-size:16px; padding:14px 0; border-radius:22px 22px 0 0; }
+  .sheet-row{ display:flex; justify-content:space-between; align-items:center; padding:16px 22px; border-bottom:1px solid rgba(28,43,74,0.08); cursor:pointer; }
+  .sheet-row:active{ background:rgba(216,174,77,0.12); }
+  .sheet-row .acct-no{ font-size:16px; font-weight:700; color:var(--ink); }
+  .sheet-row .acct-type{ font-size:12.5px; color:var(--ink-soft); }
+  .sheet-row .acct-cur{ font-size:13px; font-weight:700; color:var(--gold-deep); text-align:right; }
+  .sheet-row .acct-bal{ font-size:16px; font-weight:700; color:var(--ink); text-align:right; }
+  .cur-row{ display:flex; align-items:center; gap:12px; padding:16px 22px; margin:10px 18px; background:#fff; border-radius:14px; box-shadow:0 1px 3px rgba(0,0,0,0.08); cursor:pointer; font-size:16px; font-weight:600; color:var(--ink); }
+  .cur-row .cbadge{ width:26px; height:26px; border-radius:50%; border:1.6px solid var(--ink); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
+  .sheet-input{ width:100%; padding:14px 16px; border-radius:14px; border:1.5px solid rgba(28,43,74,0.2); font-size:16px; color:var(--ink); margin-bottom:16px; font-family:inherit; }
+
+  /* ===== confirm screen ===== */
+  .confirm-wrap{ position:relative; z-index:2; padding:60px 22px 0; flex:1; }
+  .verify-title{ text-align:center; color:#fff; font-size:17px; font-weight:600; margin-bottom:16px; }
+  .verify-card{ background:var(--paper); border-radius:20px; padding:22px 22px 26px; }
+  .bank-row{ display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+  .khqr-badge{ width:52px; height:52px; border-radius:50%; background:#e0402c; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#fff; font-weight:800; font-size:11px; letter-spacing:0.3px; text-align:center; line-height:1.1; }
+  .bank-row .name{ font-size:18px; font-weight:700; color:var(--ink); }
+  .bank-row .sub{ font-size:12px; color:var(--ink-soft); font-weight:600; margin-top:2px; }
+  .verify-line{ display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px dashed rgba(28,43,74,0.18); }
+  .verify-line:last-child{ border-bottom:none; }
+  .verify-line .l{ font-size:14.5px; color:var(--ink-soft); }
+  .verify-line .r{ font-size:16px; font-weight:700; color:var(--ink); text-align:right; }
+  .verify-line .r.gold{ color:var(--gold-deep); font-size:20px; }
+  .verify-line .sub{ font-size:12.5px; color:var(--ink-soft); font-weight:500; margin-top:2px; }
+  .confirm-btn{ position:relative; z-index:2; margin:18px 22px 26px; padding:17px; border:none; border-radius:26px; cursor:pointer; background:linear-gradient(180deg, var(--gold-soft), var(--gold)); color:#33260a; font-size:17px; font-weight:700; }
+
+  /* ===== PIN screen ===== */
+  #screen-pin{ background:#0b0d10; align-items:center; }
+  .pin-wrap{ position:relative; z-index:2; width:100%; padding:70px 24px 0; text-align:center; }
+  .pin-avatar{ width:96px; height:96px; border-radius:50%; margin:0 auto 16px; background: radial-gradient(circle at 35% 30%, #a959e0, #7d2fb8); display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:700; color:#fff; }
+  .pin-name{ color:var(--gold); font-size:19px; font-weight:600; margin-bottom:10px; }
+  .pin-account{ color:#fff; font-size:16px; margin-bottom:26px; }
+  .pin-label{ color:#fff; font-size:17px; font-weight:600; margin-bottom:22px; }
+  #pin-dots{ display:flex; justify-content:center; gap:16px; margin-bottom:14px; }
+  .pin-dot{ width:16px; height:16px; border-radius:50%; border:2px solid #fff; }
+  .pin-dot.filled{ background:#fff; }
+  .pin-hint{ color:rgba(255,255,255,0.4); font-size:11.5px; margin-bottom:26px; }
+  @keyframes shakeKey{ 10%,90%{transform:translateX(-4px);} 20%,80%{transform:translateX(6px);} 30%,50%,70%{transform:translateX(-10px);} 40%,60%{transform:translateX(10px);} }
+  #pin-dots.shake{ animation: shakeKey .45s; }
+  .pin-keys{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; max-width:280px; margin:0 auto; }
+  .pin-key{ width:74px; height:74px; border-radius:50%; border:1.4px solid rgba(255,255,255,0.35); background:none; color:#fff; font-size:26px; font-weight:500; display:flex; align-items:center; justify-content:center; cursor:pointer; margin:0 auto; }
+  .pin-key:active{ background:rgba(255,255,255,0.1); }
+  .pin-footer{ display:flex; justify-content:space-between; padding:34px 40px 0; color:#fff; font-size:14.5px; }
+  .pin-footer span{ cursor:pointer; }
+
+  /* ===== success screen ===== */
+  .success-wrap{ position:relative; z-index:2; text-align:center; padding:26px 22px 0; }
+  .success-logo{ display:flex; justify-content:center; align-items:center; gap:8px; margin-bottom:26px; }
+  .success-card{ background:var(--paper); border-radius:22px; padding:30px 22px 10px; text-align:center; }
+  .success-icon{ width:76px; height:76px; border-radius:50%; background:#1b3f8f; margin:-58px auto 14px; display:flex; align-items:center; justify-content:center; border:5px solid var(--paper); }
+  .success-title{ color:#2f6fed; font-size:22px; font-weight:700; margin-bottom:20px; }
+  .success-txn{ background:#f3efe2; border-radius:14px; padding:16px; text-align:left; margin-bottom:16px; }
+  .success-txn .row1{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .success-txn .to{ font-size:13px; color:var(--ink-soft); }
+  .success-txn .to-name{ font-size:16px; font-weight:700; color:var(--ink); }
+  .success-txn .amt{ font-size:22px; font-weight:800; color:var(--accent-red); margin-top:4px; }
+  .success-details{ text-align:left; padding:0 4px 10px; }
+  .detail-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed rgba(28,43,74,0.15); font-size:13.5px; gap:10px; }
+  .detail-row .l{ color:var(--ink-soft); flex-shrink:0; }
+  .detail-row .r{ color:var(--ink); font-weight:600; text-align:right; }
+  .heart-btn{ width:34px; height:34px; border-radius:50%; border:1.4px solid var(--gold); display:flex; align-items:center; justify-content:center; margin:8px auto 18px; color:var(--gold-deep); }
+  .success-nav{ position:relative; z-index:2; display:flex; justify-content:space-around; background:var(--paper); padding:14px 0 24px; border-top:1px solid rgba(28,43,74,0.1); margin-top:auto; }
+
+  /* ===== Accounts screen ===== */
+  .acct-tab{ background:none; border:none; color:rgba(255,255,255,0.75); font-size:14.5px; font-weight:600; padding:9px 13px; border-radius:20px; cursor:pointer; flex-shrink:0; }
+  .acct-tab.active{ background:#fff; color:var(--gold-deep); }
+  .total-ring{ position:relative; width:150px; height:150px; border-radius:50%; padding:3px; background: conic-gradient(var(--gold) 0deg, var(--gold) var(--ring-pct, 180deg), rgba(255,255,255,0.9) var(--ring-pct, 180deg), rgba(255,255,255,0.9) 360deg); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition: background 0.4s ease; }
+  .total-ring .inner{ width:100%; height:100%; border-radius:50%; background:#101825; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:#fff; font-size:12.5px; font-weight:600; }
+  .total-ring .cur-tag{ position:absolute; bottom:2px; left:50%; transform:translateX(-50%); background:#fff; color:var(--ink); width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+  .acct-pill{ background:#fff; color:var(--ink); border-radius:24px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; font-size:17px; font-weight:700; cursor:pointer; }
+  .pill-badge{ background:var(--ink); color:#fff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; margin-left:10px; flex-shrink:0; }
+  .accounts-sheet{ position:relative; z-index:2; background:#f4f1ea; border-radius:26px 26px 0 0; padding:22px 18px 110px; flex:1; margin-top:6px; }
+  .acct-card{ background:#fff; border-radius:18px; padding:18px; margin-bottom:16px; box-shadow:0 2px 6px rgba(0,0,0,0.05); }
+  .acct-card-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .acct-card-top .dots{ color:#9aa7c2; letter-spacing:2px; font-size:18px; }
+  .acct-card-mid{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+  .acct-card-icon{ color:#c7cede; }
+  .avail-label{ color:var(--ink-soft); font-size:13px; text-align:right; }
+  .avail-amt{ text-align:right; font-size:24px; font-weight:800; color:var(--ink); cursor:pointer; }
+  .acct-no{ font-size:19px; font-weight:700; color:var(--ink); cursor:pointer; }
+  .acct-type{ font-size:13px; color:var(--ink-soft); margin-bottom:10px; }
+  .acct-card-bottom{ display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px solid rgba(28,43,74,0.08); }
+  .gear{ width:26px; height:26px; border-radius:50%; background:var(--accent-red); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .default-pill{ background:#d7f5e6; color:#1c8b56; font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:14px; cursor:pointer; }
+  .accounts-nav{ position:absolute; left:0; right:0; bottom:0; z-index:6; background:linear-gradient(180deg, var(--gold-soft), var(--gold)); display:flex; justify-content:space-around; padding:14px 0 24px; }
+  .accounts-nav .nav-item{ color:#33260a; }
+
+  /* ===== Menu screen ===== */
+  .menu-row{ position:relative; z-index:2; display:flex; align-items:center; gap:14px; background:var(--card-glass); border:1px solid var(--card-border); border-radius:16px; padding:16px; margin:0 20px 12px; cursor:pointer; }
+  .menu-row-icon{ width:42px; height:42px; border-radius:12px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; color:var(--gold-soft); flex-shrink:0; }
+  .menu-row-title{ font-size:15px; font-weight:700; color:#fff; }
+  .menu-row-sub{ font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .menu-row .chev{ margin-left:auto; color:rgba(255,255,255,0.4); flex-shrink:0; }
+  .menu-list{ padding-top:16px; }
+
+  /* ===== History screen ===== */
+  .history-header{ background: linear-gradient(180deg, #cfa23e, #a9782a); padding-bottom:14px; }
+  .history-search-wrap{ padding:16px 20px 0; }
+  .history-search{ display:flex; align-items:center; gap:10px; background:#fff; border-radius:24px; padding:12px 18px; color:#9aa2b0; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .history-search input{ border:none; outline:none; font-size:15px; flex:1; background:none; color:var(--ink); font-family:inherit; }
+  .history-search input::placeholder{ color:#a7adb8; }
+  .history-section-label{ background:#e7e4dc; color:var(--ink-soft); font-size:13px; font-weight:700; padding:9px 20px; margin-top:14px; }
+  .hist-row{ display:flex; align-items:center; gap:14px; background:#fff; padding:16px 20px; border-bottom:1px solid #ece9e1; cursor:pointer; }
+  .hist-row:active{ background:#f7f5ef; }
+  .hist-avatar{ width:44px; height:44px; border-radius:50%; background:#e0402c; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#fff; font-weight:800; font-size:9px; }
+  .hist-mid{ flex:1; min-width:0; }
+  .hist-label{ font-size:12.5px; color:var(--ink-soft); }
+  .hist-name{ font-size:15.5px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hist-amt{ font-size:16px; font-weight:700; flex-shrink:0; }
+  .hist-amt.neg{ color:var(--accent-red); }
+  .hist-empty{ text-align:center; color:var(--ink-soft); font-size:13.5px; padding:60px 30px; }
+  .history-sort-bar{ position:absolute; left:0; right:0; bottom:0; z-index:6; background:linear-gradient(180deg, var(--gold-soft), var(--gold-deep)); color:#33260a; text-align:center; font-weight:800; letter-spacing:1px; padding:16px 0 24px; cursor:pointer; }
+
+  /* ===== history detail sheet ===== */
+  .hist-detail-card{ display:flex; align-items:center; gap:12px; background:#f3efe2; border-radius:14px; padding:14px 16px; margin-bottom:6px; }
+  .hist-detail-nav{ display:flex; justify-content:space-around; margin-top:18px; padding-top:14px; border-top:1px solid rgba(28,43,74,0.1); }
+  .hd-nav-item{ display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; color:#2f6fed; cursor:pointer; }
+
+  a, button{ font-family:inherit; }
+</style>
+</head>
+<body>
+
+<!-- reusable logo mark -->
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="acleda-bird" viewBox="0 0 60 60">
+    <path d="M4 37 C9 17 31 6 55 11 C41 12 28 20 23 34 C33 30 44 34 48 44 C34 42 21 48 15 57 C17 47 11 41 4 37 Z" fill="var(--gold)"/>
+    <path d="M55 11 C44 15 37 23 39 33 C33 30 29 36 31 42 C39 38 47 41 48 44 C51 33 55 21 55 11 Z" fill="#fff"/>
+  </symbol>
+</svg>
+
+<div class="device"><div class="app" id="app">
+
+  <!-- ============ HOME SCREEN ============ -->
+  <div class="screen active" id="screen-home">
+    <div class="bg-scene">
+      <div class="stars" id="stars-home"></div>
+      <svg class="bunting" viewBox="0 0 400 70" preserveAspectRatio="none"><path d="M0 6 Q200 40 400 6" stroke="#3a4c6e" stroke-width="2" fill="none"/><g id="flags-home"></g></svg>
+      <svg class="foliage-l" viewBox="0 0 200 160"><path d="M0 0 C40 10 70 40 60 90 C90 70 130 90 120 140 C160 120 190 140 200 160 L0 160 Z" fill="#050a12"/></svg>
+      <svg class="foliage-r" viewBox="0 0 200 160"><path d="M200 0 C160 10 130 40 140 90 C110 70 70 90 80 140 C40 120 10 140 0 160 L200 160 Z" fill="#050a12"/></svg>
+      <svg class="temple" viewBox="0 0 260 160"><path d="M40 160 V95 H30 L60 60 L90 95 H80 V160 Z" fill="#0a1526"/><path d="M170 160 V90 H155 L200 40 L245 90 H230 V160 Z" fill="#0a1526"/><line x1="200" y1="40" x2="200" y2="8" stroke="#0a1526" stroke-width="2"/><line x1="60" y1="60" x2="60" y2="30" stroke="#0a1526" stroke-width="2"/></svg>
+    </div>
+
+    <div class="statusbar">
+      <span>5:11</span>
+      <div class="status-icons">
+        <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" fill="#fff"/><rect x="5" y="5" width="3" height="7" fill="#fff"/><rect x="10" y="2" width="3" height="10" fill="#fff"/><rect x="15" y="0" width="3" height="12" fill="#fff"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12"><path d="M1 4 Q8 -2 15 4" stroke="#fff" stroke-width="1.6" fill="none"/><path d="M3.5 7 Q8 3 12.5 7" stroke="#fff" stroke-width="1.6" fill="none"/><circle cx="8" cy="10" r="1.3" fill="#fff"/></svg>
+      </div>
+    </div>
+
+    <div class="header">
+      <div class="brand">
+        <svg width="30" height="30" viewBox="0 0 60 60"><use href="#acleda-bird"/></svg>
+        <div class="brand-text">អេស៊ីលីដា<small>ACLEDA BANK</small></div>
+      </div>
+      <div class="header-icons">
+        <button class="icon-circle" onclick="toast('No new notifications right now')"><div class="dot"></div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10Z"/><path d="M9.5 18a2.5 2.5 0 0 0 5 0"/></svg>
+        </button>
+        <button class="icon-square" onclick="toast('App switcher — coming soon')">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="greeting">
+      <div class="avatar"><span class="dyn-sender-initials">AS</span><div class="dot"></div></div>
+      <div>
+        <h1>Hello, <span id="greeting-name">Sisovan</span></h1>
+        <a href="#" onclick="return toast('Profile — coming soon')">Profile ›</a>
+      </div>
+    </div>
+
+    <div class="balance-card" onclick="showScreen('screen-accounts')">
+      <div class="balance-top">
+        <div class="ring" id="home-ring">
+          <div class="inner-circle">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2Z"/><circle cx="17" cy="13" r="1.4"/></svg>
+            <span>Accounts</span>
+          </div>
+        </div>
+        <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+          <div class="balance-label">Total Balances</div>
+          <button class="eye-btn" onclick="event.stopPropagation(); toggleHomeBlur()">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.8"/></svg>
+          </button>
+          <div id="home-figures" class="home-figures">
+            <div class="hf-line"><span class="hf-sym">៛</span><span id="home-khr">0</span></div>
+            <div class="hf-line"><span class="hf-sym">$</span><span id="home-usd">7.78</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="tile wide" onclick="toast('Cards — coming soon')">
+        <span class="tile-icon"><svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="2.5" y="6" width="15" height="11" rx="2"/><path d="M2.5 10.5h15"/><path d="M18.5 8c1.8.6 3 1.6 3 3.5s-1.2 2.9-3 3.5"/></svg></span>
+        Cards
+      </div>
+      <div class="tile wide" onclick="toast('Payments — coming soon')">
+        <span class="tile-icon"><svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M6 2.5h9l3 3v16l-2.5-1.5L13 21.5l-2.5-1.5L8 21.5 6 20V2.5Z"/><path d="M9 8h6M9 11.5h6M9 15h4"/></svg></span>
+        Payments
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="tile" onclick="toast('Mobile Top-up — coming soon')">
+        <span class="tile-icon"><svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 18.5h3"/><path d="M12 6v6"/><path d="M9 9l3 3 3-3"/></svg></span>
+        Mobile Top-up
+      </div>
+      <div class="tile" onclick="openScan()">
+        <span class="tile-icon"><svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3"/><path d="M20 8V5a1 1 0 0 0-1-1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg></span>
+        Scan QR
+      </div>
+      <div class="tile" onclick="toast('Transfers — coming soon')">
+        <span class="tile-icon"><svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M4 8h13"/><path d="M13 4l4 4-4 4"/><path d="M20 16H7"/><path d="M11 12l-4 4 4 4"/></svg></span>
+        Transfers
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="tile" onclick="toast('Deposits — coming soon')">
+        <span class="tile-icon"><svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M6 20v-6"/><path d="M11 20V9"/><path d="M16 20v-3"/><path d="M3 11l6-6 4 4 8-8"/><path d="M17 1h4v4"/></svg></span>
+        Deposits
+      </div>
+      <div class="tile" onclick="toast('Loans — coming soon')">
+        <span class="tile-icon"><svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M3 14c3-4 6-1 9-1s5-3 9 1"/><circle cx="12" cy="8" r="3"/></svg></span>
+        Loans
+      </div>
+      <div class="tile" onclick="toast('Quick Cash — coming soon')">
+        <span class="tile-icon"><svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M3 7h13l4 4v6H3z"/><path d="M13 17V7"/><path d="M17.5 11v6"/><circle cx="8" cy="12" r="2"/></svg></span>
+        Quick Cash
+      </div>
+    </div>
+
+    <div class="shortcuts">
+      <div class="shortcut" onclick="toast('My Points — coming soon')">
+        <div class="shortcut-icon"><svg class="icon" viewBox="0 0 24 24" style="color:var(--gold-soft)"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1.4 1.1-2 2.5-2s2.5.7 2.5 2-1 1.7-2.5 2.2S9.5 13 9.5 14.4c0 1.3 1.1 2.1 2.5 2.1s2.5-.7 2.5-2"/></svg></div>
+        <span>My Points</span>
+      </div>
+      <div class="shortcut" onclick="toast('Toanchet Pay — coming soon')">
+        <div class="shortcut-icon"><svg class="icon" viewBox="0 0 24 24" style="color:var(--gold-soft)"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0"/><path d="M5 9v10h14V9"/><path d="M10 19v-5h4v5"/></svg></div>
+        <span>Toanchet Pay</span>
+      </div>
+      <div class="shortcut" onclick="toast('Public Services — coming soon')">
+        <div class="shortcut-icon"><svg class="icon" viewBox="0 0 24 24" style="color:var(--gold-soft)"><path d="M12 2l1.8 3.6L18 6l-3 2.9.7 4.1L12 11l-3.7 2 .7-4.1L6 6l4.2-.4Z"/><path d="M5 21V13h14v8"/><path d="M5 21h14"/><path d="M9 21v-4h6v4"/></svg></div>
+        <span>Public Services</span>
+      </div>
+      <div class="shortcut" onclick="toast('CSX Trade — coming soon')">
+        <div class="shortcut-icon" style="background:#0c1a3a;">
+          <div style="font-size:8px; font-weight:800; color:#fff; text-align:center; line-height:1.1;">CSX<br>
+          <svg class="icon-sm" viewBox="0 0 24 24" style="stroke:var(--gold); width:13px; height:13px;"><path d="M6 14c0-3 2-5 4-5s2 2 4 2 2-3 4-1"/></svg></div>
+        </div>
+        <span>CSX Trade</span>
+      </div>
+    </div>
+
+    <div class="section-title">Recommended</div>
+
+    <div class="bottom-nav">
+      <button class="nav-item active" onclick="showScreen('screen-home')"><svg class="icon" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg>Home</button>
+      <button class="nav-item" onclick="toast('Favorites — coming soon')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.5-8.8C1 8 2.5 4.5 6 4c2-.3 4 1 6 3.5C14 5 16 3.7 18 4c3.5.5 5 4 3.5 7.2C19 15.6 12 20 12 20Z"/></svg>Favorites</button>
+      <button class="nav-item" onclick="toast('LiveChat — coming soon')"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5h18v11H8l-5 4V5Z"/></svg>LiveChat</button>
+      <button class="nav-item" onclick="showScreen('screen-menu')"><svg class="icon" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/><path d="M9 11h6M9 14h6M9 17h4"/></svg>Menu</button>
+    </div>
+  </div>
+
+  <!-- ============ SCAN QR SCREEN ============ -->
+  <div class="screen" id="screen-scan">
+    <video id="qr-video" playsinline muted></video>
+    <canvas id="qr-canvas" style="display:none"></canvas>
+    <input type="file" id="qr-file-input" accept="image/*" style="display:none">
+    <div class="flash-overlay" id="flash"></div>
+    <div class="scan-top">
+      <button class="scan-back" onclick="leaveScan()"><svg class="icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="scan-title">Scan QR
+        <svg class="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><path d="M12 11v5.5"/></svg>
+      </div>
+      <svg width="30" height="30" viewBox="0 0 60 60"><use href="#acleda-bird"/></svg>
+    </div>
+
+    <div class="scan-frame-wrap" onclick="frameTap()">
+      <div class="scan-frame">
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+        <div class="scan-line"></div>
+      </div>
+    </div>
+    <div class="scan-hint" id="scan-hint">Starting camera…</div>
+
+    <div class="accepted">
+      <h4>Accepted</h4>
+      <div class="badge-row">
+        <div class="badge" style="background:#0c1a3a;"><svg width="20" height="20" viewBox="0 0 60 60"><use href="#acleda-bird"/></svg></div>
+        <div class="badge" style="background:var(--accent-red);">KHQR</div>
+        <div class="badge" style="background:#1a1f71;">VISA</div>
+        <div class="badge" style="background:#16171a;"><span style="display:flex;"><span style="width:12px;height:12px;border-radius:50%;background:#eb001b;margin-right:-4px;"></span><span style="width:12px;height:12px;border-radius:50%;background:#f79e1b;opacity:0.85;"></span></span></div>
+        <div class="badge" style="background:#0f3d6e;">UPI</div>
+        <div class="badge" style="background:#d0202c;">VietQR</div>
+        <div class="badge" style="background:#274b8c;">LAP<br>Net</div>
+      </div>
+      <div class="badge-row">
+        <div class="badge" style="background:#2464c7;">Room<br>QR</div>
+        <div class="badge" style="background:#c8232c;">JPQR</div>
+        <div class="badge" style="background:#e6007e;">Duit<br>Now</div>
+      </div>
+    </div>
+
+    <div class="scan-actions">
+      <div class="scan-action"><button onclick="toast('Flashlight — not supported by this device/browser')"><svg class="icon" viewBox="0 0 24 24"><path d="M9 2h6v4l-2 2v3l3 4v6a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-6l3-4V8L9 6Z"/></svg></button><span>Flashlight</span></div>
+      <div class="scan-action"><button onclick="document.getElementById('qr-file-input').click()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg></button><span>Select QR</span></div>
+    </div>
+  </div>
+
+  <!-- ============ PAY SCREEN ============ -->
+  <div class="screen" id="screen-pay">
+    <div class="bg-scene">
+      <div class="stars" id="stars-pay"></div>
+      <svg class="bunting" viewBox="0 0 400 70" preserveAspectRatio="none"><path d="M0 6 Q200 40 400 6" stroke="#3a4c6e" stroke-width="2" fill="none"/><g id="flags-pay"></g></svg>
+      <svg class="foliage-r" viewBox="0 0 200 160"><path d="M200 0 C160 10 130 40 140 90 C110 70 70 90 80 140 C40 120 10 140 0 160 L200 160 Z" fill="#050a12"/></svg>
+    </div>
+    <div class="pay-topbar">
+      <button class="scan-back" onclick="showScreen('screen-home')"><svg class="icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="scan-title" style="font-size:17px;">Scan QR
+        <svg class="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/></svg>
+      </div>
+      <svg width="26" height="26" viewBox="0 0 60 60"><use href="#acleda-bird"/></svg>
+    </div>
+
+    <div class="pay-person">
+      <div class="pay-avatar" id="pay-avatar">AS</div>
+      <div class="pay-name" id="pay-name">AY SISOVAN</div>
+    </div>
+
+    <div class="pay-quicklinks">
+      <div class="quicklink"><div class="box"><svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h11M4 18h7"/><circle cx="19" cy="18" r="2.4"/></svg></div><span>Purpose</span></div>
+      <div class="quicklink"><div class="box"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.5-8.8C1 8 2.5 4.5 6 4c2-.3 4 1 6 3.5C14 5 16 3.7 18 4c3.5.5 5 4 3.5 7.2C19 15.6 12 20 12 20Z"/></svg></div><span>Favorite</span></div>
+      <div class="quicklink" onclick="toast('Tips — coming soon')"><div class="box"><svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v5c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 11v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/></svg></div><span>Tips</span></div>
+    </div>
+
+    <div class="pay-from-row">
+      <span class="label">Pay From</span>
+      <span class="value" onclick="openSheet('sheet-account')" id="pay-account-label">010 228 623 <svg class="icon-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+    </div>
+    <div class="pay-balance-row">
+      <span class="amt" id="pay-balance-label">7.78 USD</span>
+      <button class="mask-btn" onclick="toggleMask()"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.6"/></svg></button>
+    </div>
+
+    <div class="keypad-sheet">
+      <div class="amount-pill" onclick="openSheet('sheet-currency')">
+        <span class="val" id="amount-display">0</span>
+        <span class="cur" id="currency-symbol">$ ▾</span>
+      </div>
+      <div class="keys">
+        <button class="key" onclick="pressKey('1')">1</button><button class="key" onclick="pressKey('2')">2</button><button class="key" onclick="pressKey('3')">3</button>
+        <button class="key" onclick="pressKey('4')">4</button><button class="key" onclick="pressKey('5')">5</button><button class="key" onclick="pressKey('6')">6</button>
+        <button class="key" onclick="pressKey('7')">7</button><button class="key" onclick="pressKey('8')">8</button><button class="key" onclick="pressKey('9')">9</button>
+        <button class="key" onclick="pressKey('.')">.</button><button class="key" onclick="pressKey('0')">0</button>
+        <button class="key" onclick="pressKey('back')"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M9 6h11a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-6-6Z"/><path d="M14 10l4 4M18 10l-4 4"/></svg></button>
+      </div>
+      <button class="pay-now-btn" onclick="goConfirm()">Pay Now</button>
+    </div>
+  </div>
+
+  <!-- ============ CONFIRM SCREEN ============ -->
+  <div class="screen" id="screen-confirm">
+    <div class="bg-scene">
+      <div class="stars" id="stars-confirm"></div>
+      <svg class="bunting" viewBox="0 0 400 70" preserveAspectRatio="none"><path d="M0 6 Q200 40 400 6" stroke="#3a4c6e" stroke-width="2" fill="none"/><g id="flags-confirm"></g></svg>
+    </div>
+    <div class="scan-top">
+      <button class="scan-back" onclick="showScreen('screen-pay')"><svg class="icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="scan-title" style="font-size:18px;">Scan QR</div>
+      <svg width="26" height="26" viewBox="0 0 60 60"><use href="#acleda-bird"/></svg>
+    </div>
+
+    <div class="confirm-wrap">
+      <div class="verify-title">Please verify transaction</div>
+      <div class="verify-card">
+        <div class="bank-row">
+          <div class="khqr-badge">KHQR</div>
+          <div>
+            <div class="name" id="confirm-name">AY SISOVAN</div>
+            <div class="sub">via KHQR Payment</div>
+          </div>
+        </div>
+        <div class="verify-line"><span class="l">Amount</span><span class="r gold" id="confirm-amount">0.00 $</span></div>
+        <div class="verify-line"><span class="l">Pay From</span><div class="r"><div id="confirm-payfrom">Ay Sisovan</div><div class="sub" id="confirm-acct">010 228 623 (USD)</div></div></div>
+        <div class="verify-line"><span class="l">Debit Amount</span><span class="r" id="confirm-debit">-0.00 USD</span></div>
+        <div class="verify-line"><span class="l">Payment Network</span><span class="r" style="font-size:14px;">KHQR</span></div>
+      </div>
+    </div>
+    <button class="confirm-btn" onclick="goPin()">Confirm</button>
+  </div>
+
+  <!-- ============ PIN SCREEN ============ -->
+  <div class="screen" id="screen-pin">
+    <div class="scan-top">
+      <button class="scan-back" onclick="showScreen('screen-confirm')"><svg class="icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div></div><div></div>
+    </div>
+    <div class="pin-wrap">
+      <div class="pin-avatar"><span class="dyn-sender-initials">AS</span></div>
+      <div class="pin-name dyn-sender-name">Ay Sisovan</div>
+      <div class="pin-account" id="pin-account">010 228 623</div>
+      <div class="pin-label">Please Enter PIN</div>
+      <div id="pin-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="pin-hint">Demo PIN: 111111</div>
+      <div class="pin-keys">
+        <button class="pin-key" onclick="pinPress('1')">1</button><button class="pin-key" onclick="pinPress('2')">2</button><button class="pin-key" onclick="pinPress('3')">3</button>
+        <button class="pin-key" onclick="pinPress('4')">4</button><button class="pin-key" onclick="pinPress('5')">5</button><button class="pin-key" onclick="pinPress('6')">6</button>
+        <button class="pin-key" onclick="pinPress('7')">7</button><button class="pin-key" onclick="pinPress('8')">8</button><button class="pin-key" onclick="pinPress('9')">9</button>
+        <div></div><button class="pin-key" onclick="pinPress('0')">0</button><div></div>
+      </div>
+      <div class="pin-footer">
+        <span onclick="toast('Demo PIN is 111111')">Forgot PIN</span>
+        <span onclick="showScreen('screen-confirm')">Cancel</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SUCCESS SCREEN ============ -->
+  <div class="screen" id="screen-success">
+    <div class="bg-scene">
+      <div class="stars" id="stars-success"></div>
+      <svg class="bunting" viewBox="0 0 400 70" preserveAspectRatio="none"><path d="M0 6 Q200 40 400 6" stroke="#3a4c6e" stroke-width="2" fill="none"/><g id="flags-success"></g></svg>
+    </div>
+    <div class="success-wrap">
+      <div class="success-logo">
+        <svg width="26" height="26" viewBox="0 0 60 60"><use href="#acleda-bird"/></svg>
+        <div class="brand-text">អេស៊ីលីដា<small>ACLEDA BANK</small></div>
+      </div>
+    </div>
+
+    <div class="success-card">
+      <div class="success-icon">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1 2-1 3.5 0 5 1-1.5 1-3 0-5Z"/><path d="M7 9c2 1 4 3 5 6-4-1-6.5-3-7-6Z"/><path d="M17 9c-2 1-4 3-5 6 4-1 6.5-3 7-6Z"/><path d="M6 20c2-3 4-4 6-4s4 1 6 4"/></svg>
+      </div>
+      <div class="success-title">Success</div>
+      <div class="success-txn">
+        <div class="row1">
+          <div class="khqr-badge" style="width:44px;height:44px;"><span style="font-size:9px;">KHQR</span></div>
+          <div>
+            <div class="to">Transaction KHQR to</div>
+            <div class="to-name" id="success-name">AY SISOVAN</div>
+          </div>
+        </div>
+        <div class="amt" id="success-amount">0.00 $</div>
+      </div>
+      <div class="success-details">
+        <div class="detail-row"><span class="l">External Txn Ref</span><span class="r" id="success-ref">dffd011f</span></div>
+        <div class="detail-row"><span class="l">Date</span><span class="r" id="success-date">Aug 27, 2026 | 05:25 PM (ICT)</span></div>
+        <div class="detail-row"><span class="l">Paid From</span><span class="r" id="success-paidfrom">Ay Sisovan</span></div>
+        <div class="detail-row"><span class="l">Account No.</span><span class="r" id="success-acctno">010 228 623 (USD)</span></div>
+        <div class="detail-row"><span class="l">Debit Amount</span><span class="r" style="color:var(--accent-red)" id="success-debit">-0.00 USD</span></div>
+        <div class="detail-row"><span class="l">To Account</span><span class="r" id="success-toacct">AY SISOVAN</span></div>
+        <div class="detail-row"><span class="l">Payment Network</span><span class="r">KHQR</span></div>
+        <div class="detail-row"><span class="l">Reference No.</span><span class="r" id="success-refno">62394343220</span></div>
+      </div>
+      <div class="heart-btn"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.5-8.8C1 8 2.5 4.5 6 4c2-.3 4 1 6 3.5C14 5 16 3.7 18 4c3.5.5 5 4 3.5 7.2C19 15.6 12 20 12 20Z"/></svg></div>
+    </div>
+
+    <div class="success-nav">
+      <button class="nav-item light active" onclick="resetAndHome()"><svg class="icon" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></svg>Home</button>
+      <button class="nav-item light" onclick="toast('Repeat transaction — coming soon')"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 15a8 8 0 0 0 14 3M19 9A8 8 0 0 0 5 6"/></svg>Repeat</button>
+      <button class="nav-item light" onclick="showScreen('screen-accounts')"><svg class="icon" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2Z"/></svg>Accounts</button>
+      <button class="nav-item light" onclick="toast('Share receipt — coming soon')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>Share</button>
+    </div>
+  </div>
+
+  <!-- ============ ACCOUNTS SCREEN ============ -->
+  <div class="screen" id="screen-accounts">
+    <div class="bg-scene">
+      <div class="stars" id="stars-accounts"></div>
+      <svg class="bunting" viewBox="0 0 400 70" preserveAspectRatio="none"><path d="M0 6 Q200 40 400 6" stroke="#3a4c6e" stroke-width="2" fill="none"/><g id="flags-accounts"></g></svg>
+      <svg class="temple" viewBox="0 0 260 160"><path d="M40 160 V95 H30 L60 60 L90 95 H80 V160 Z" fill="#0a1526"/><path d="M170 160 V90 H155 L200 40 L245 90 H230 V160 Z" fill="#0a1526"/></svg>
+    </div>
+    <div class="scan-top">
+      <button class="scan-back" onclick="showScreen('screen-home')"><svg class="icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="scan-title" style="font-size:19px;">Accounts
+        <svg class="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/></svg>
+      </div>
+      <svg width="30" height="30" viewBox="0 0 60 60"><use href="#acleda-bird"/></svg>
+    </div>
+
+    <div style="display:flex; gap:8px; padding:18px 20px 0; position:relative; z-index:2; overflow-x:auto;">
+      <button class="acct-tab active">Balance</button>
+      <button class="acct-tab" onclick="toast('Trading — coming soon')">Trading</button>
+      <button class="acct-tab" onclick="toast('Cards — coming soon')">Cards</button>
+      <button class="acct-tab" onclick="toast('Link — coming soon')">Link</button>
+    </div>
+
+    <div style="display:flex; align-items:center; padding:28px 20px 22px; position:relative; z-index:2;">
+      <div class="total-ring" id="accounts-ring"><div class="inner"><svg class="icon" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2Z"/></svg><span>Total</span></div><span class="cur-tag">$</span></div>
+      <div style="display:flex; flex-direction:column; gap:12px; flex:1; margin-left:20px;">
+        <div class="acct-pill" onclick="openEditSheet('KHR')"><span id="acct-pill-khr">0</span><span class="pill-badge">៛</span></div>
+        <div class="acct-pill" onclick="openEditSheet('USD')"><span id="acct-pill-usd">7.78</span><span class="pill-badge">$</span></div>
+      </div>
+    </div>
+
+    <div class="accounts-sheet">
+      <div class="acct-card">
+        <div class="acct-card-top"><span class="dots">•••</span></div>
+        <div class="acct-card-mid">
+          <div class="acct-card-icon"><svg class="icon-lg" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2Z"/><circle cx="17" cy="13" r="1.4"/></svg></div>
+          <div>
+            <div class="avail-label">Available</div>
+            <div class="avail-amt" onclick="openEditSheet('KHR')"><span id="acct-card-khr-bal">0</span> ៛</div>
+          </div>
+        </div>
+        <div class="acct-no" id="acct-card-khr-no" onclick="openEditSheet('phone')">010 228 623</div>
+        <div class="acct-type">Wallet KHR</div>
+        <div class="acct-card-bottom">
+          <span class="gear" onclick="toast('Account settings — coming soon')"><svg class="icon-sm" viewBox="0 0 24 24" stroke="#fff"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></span>
+          <span class="default-pill" onclick="toast('This is your default KHR wallet')">Default ›</span>
+        </div>
+      </div>
+
+      <div class="acct-card">
+        <div class="acct-card-top"><span class="dots">•••</span></div>
+        <div class="acct-card-mid">
+          <div class="acct-card-icon"><svg class="icon-lg" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2Z"/><circle cx="17" cy="13" r="1.4"/></svg></div>
+          <div>
+            <div class="avail-label">Available</div>
+            <div class="avail-amt" onclick="openEditSheet('USD')"><span id="acct-card-usd-bal">7.78</span> $</div>
+          </div>
+        </div>
+        <div class="acct-no" id="acct-card-usd-no" onclick="openEditSheet('phone')">010 228 623</div>
+        <div class="acct-type">Wallet USD</div>
+        <div class="acct-card-bottom">
+          <span class="gear" onclick="toast('Account settings — coming soon')"><svg class="icon-sm" viewBox="0 0 24 24" stroke="#fff"><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="default-pill" onclick="toast('This is your default USD wallet')">Default ›</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="accounts-nav">
+      <button class="nav-item" onclick="toast('New Account — coming soon')"><svg class="icon" viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/><path d="M16 11h3M17.5 9.5v3"/></svg>New Account</button>
+      <button class="nav-item" onclick="toast('Quick Services — coming soon')"><svg class="icon" viewBox="0 0 24 24"><path d="M4 8h13"/><path d="M13 4l4 4-4 4"/><path d="M20 16H7"/><path d="M11 12l-4 4 4 4"/></svg>Quick Services</button>
+      <button class="nav-item" onclick="showScreen('screen-history')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6"/></svg>History</button>
+    </div>
+  </div>
+
+  <!-- ============ MENU SCREEN ============ -->
+  <div class="screen" id="screen-menu">
+    <div class="bg-scene">
+      <div class="stars" id="stars-menu"></div>
+      <svg class="bunting" viewBox="0 0 400 70" preserveAspectRatio="none"><path d="M0 6 Q200 40 400 6" stroke="#3a4c6e" stroke-width="2" fill="none"/><g id="flags-menu"></g></svg>
+    </div>
+    <div class="scan-top">
+      <button class="scan-back" onclick="showScreen('screen-home')"><svg class="icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="scan-title" style="font-size:19px;">Menu</div>
+      <svg width="30" height="30" viewBox="0 0 60 60"><use href="#acleda-bird"/></svg>
+    </div>
+
+    <div class="menu-list">
+      <div class="menu-row" onclick="showScreen('screen-accounts')">
+        <div class="menu-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2Z"/></svg></div>
+        <div><div class="menu-row-title">Accounts &amp; Balance</div><div class="menu-row-sub">View wallets, edit your KHR &amp; USD balance</div></div>
+        <svg class="icon-sm chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+
+      <div class="menu-row" onclick="openEditSheet('name')">
+        <div class="menu-row-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></div>
+        <div><div class="menu-row-title">Your Name</div><div class="menu-row-sub dyn-sender-name">Ay Sisovan</div></div>
+        <svg class="icon-sm chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+
+      <div class="menu-row" onclick="openEditSheet('phone')">
+        <div class="menu-row-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 18.5h3"/></svg></div>
+        <div><div class="menu-row-title">Phone Number</div><div class="menu-row-sub dyn-phone">010 228 623</div></div>
+        <svg class="icon-sm chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+
+      <div class="menu-row" onclick="showScreen('screen-history')">
+        <div class="menu-row-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6"/></svg></div>
+        <div><div class="menu-row-title">Transaction History</div><div class="menu-row-sub">See who you've sent money to</div></div>
+        <svg class="icon-sm chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+
+      <div class="menu-row" onclick="toast('Demo PIN is 111111')">
+        <div class="menu-row-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+        <div><div class="menu-row-title">PIN &amp; Security</div><div class="menu-row-sub">Manage your transaction PIN</div></div>
+        <svg class="icon-sm chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+
+      <div class="menu-row" onclick="toast('ACLEDA app prototype — for demo use only')">
+        <div class="menu-row-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.6" r=".3" fill="currentColor"/></svg></div>
+        <div><div class="menu-row-title">About</div><div class="menu-row-sub">App version &amp; info</div></div>
+        <svg class="icon-sm chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ HISTORY SCREEN ============ -->
+  <div class="screen" id="screen-history" style="background:#f0efe9;">
+    <div class="history-header">
+      <div class="statusbar">
+        <span>5:55</span>
+        <div class="status-icons">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" fill="#fff"/><rect x="5" y="5" width="3" height="7" fill="#fff"/><rect x="10" y="2" width="3" height="10" fill="#fff"/><rect x="15" y="0" width="3" height="12" fill="#fff"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M1 4 Q8 -2 15 4" stroke="#fff" stroke-width="1.6" fill="none"/><path d="M3.5 7 Q8 3 12.5 7" stroke="#fff" stroke-width="1.6" fill="none"/><circle cx="8" cy="10" r="1.3" fill="#fff"/></svg>
+        </div>
+      </div>
+      <div class="scan-top" style="padding-top:2px;">
+        <button class="scan-back" onclick="showScreen('screen-accounts')"><svg class="icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scan-title" style="color:#fff; font-size:20px;">History</div>
+        <svg width="28" height="28" viewBox="0 0 60 60"><use href="#acleda-bird"/></svg>
+      </div>
+    </div>
+
+    <div class="history-search-wrap">
+      <div class="history-search">
+        <svg class="icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <input type="text" placeholder="Search…" disabled>
+      </div>
+    </div>
+
+    <div class="history-section-label">Today</div>
+    <div id="history-list"></div>
+    <div style="height:70px;"></div>
+
+    <div class="history-sort-bar" onclick="toast('Sort — coming soon')">SORT</div>
+  </div>
+
+  <!-- ============ SHEETS ============ -->
+  <div class="sheet-backdrop" id="sheet-backdrop" onclick="closeSheets()"></div>
+
+  <div class="sheet" id="sheet-account">
+    <div class="sheet-header">Select Account</div>
+    <div class="sheet-row" onclick="selectAccount('KHR')">
+      <div><div class="acct-no" id="sheet-acct-khr-no">010 228 623</div><div class="acct-type">Wallet</div></div>
+      <div><div class="acct-cur">KHR</div><div class="acct-bal" id="sheet-acct-khr-bal">0</div></div>
+    </div>
+    <div class="sheet-row" onclick="selectAccount('USD')">
+      <div><div class="acct-no" id="sheet-acct-usd-no">010 228 623</div><div class="acct-type">Wallet</div></div>
+      <div><div class="acct-cur">USD</div><div class="acct-bal" id="sheet-acct-usd-bal">7.78</div></div>
+    </div>
+  </div>
+
+  <div class="sheet" id="sheet-currency">
+    <div class="sheet-handle"></div>
+    <div style="text-align:center; font-weight:700; color:var(--ink); font-size:16px; padding:6px 0 14px;">Select Amount Currency</div>
+    <div class="cur-row" onclick="selectCurrency('៛')"><span class="cbadge">៛</span> KHR</div>
+    <div class="cur-row" onclick="selectCurrency('$')"><span class="cbadge">$</span> USD</div>
+  </div>
+
+  <div class="sheet" id="sheet-edit">
+    <div class="sheet-handle"></div>
+    <div id="edit-title" style="text-align:center; font-weight:700; color:var(--ink); font-size:16px; padding:6px 0 14px;">Edit</div>
+    <div style="padding:0 22px;">
+      <input id="edit-input" class="sheet-input" type="text">
+      <button class="pay-now-btn" style="margin-top:0;" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="sheet-history-detail" style="max-height:88%;">
+    <div class="sheet-handle"></div>
+    <div style="padding:6px 20px 20px;">
+      <div class="hist-detail-card">
+        <div class="khqr-badge" style="width:44px;height:44px;"><span style="font-size:9px;">KHQR</span></div>
+        <div style="flex:1;">
+          <div style="font-size:13px; color:var(--ink-soft);">Transaction QR to</div>
+          <div id="hd-name" style="font-size:16px; font-weight:700; color:var(--ink);">AY SISOVAN</div>
+        </div>
+      </div>
+      <div id="hd-amount" style="font-size:26px; font-weight:800; color:var(--accent-red); margin:10px 0 18px;">10 $</div>
+
+      <div class="verify-line"><span class="l">Paid From</span><span class="r" id="hd-paidfrom">Ay Sisovan</span></div>
+      <div class="verify-line"><span class="l">Account No.</span><span class="r" id="hd-acctno">010 228 623 (USD)</span></div>
+      <div class="verify-line"><span class="l">Debit Amount</span><span class="r" id="hd-debit" style="color:var(--accent-red);">-10.00 USD</span></div>
+      <div class="verify-line"><span class="l">Receiver</span><span class="r" id="hd-receiver">Ay Sisovan</span></div>
+      <div class="verify-line"><span class="l">Amount</span><span class="r" id="hd-amt2">10.00 USD</span></div>
+      <div class="verify-line"><span class="l">Reference No.</span><span class="r" id="hd-refno" onclick="copyRefNo()" style="cursor:pointer; text-decoration:underline dotted;">62395867232</span></div>
+      <div class="verify-line"><span class="l">Date</span><span class="r" id="hd-date">27-Aug-2026 | 09:23 PM</span></div>
+
+      <div class="hist-detail-nav">
+        <div class="hd-nav-item" onclick="closeSheets()"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/></svg><span>History</span></div>
+        <div class="hd-nav-item" onclick="toast('Repeat transaction — coming soon')"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 15a8 8 0 0 0 14 3M19 9A8 8 0 0 0 5 6"/></svg><span>Repeat</span></div>
+        <div class="hd-nav-item" onclick="toast('Capture — coming soon')"><svg class="icon" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13.5" r="3.2"/></svg><span>Capture</span></div>
+        <div class="hd-nav-item" onclick="toast('Share receipt — coming soon')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg><span>Share</span></div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
+<script>
+  // ---------- decorative stars & bunting ----------
+  function paintStars(id, count){
+    const el = document.getElementById(id);
+    if(!el || el.childElementCount) return;
+    let html = '';
+    for(let i=0;i<count;i++){
+      const top = Math.random()*55, left = Math.random()*100;
+      const size = Math.random()<0.15 ? 2.4 : 1.4;
+      html += `<i style="top:${top}%; left:${left}%; width:${size}px; height:${size}px; opacity:${(0.3+Math.random()*0.6).toFixed(2)}"></i>`;
+    }
+    el.innerHTML = html;
+  }
+  ['stars-home','stars-pay','stars-confirm','stars-success','stars-accounts','stars-menu'].forEach(id=>paintStars(id, 50));
+
+  function paintFlags(id){
+    const g = document.getElementById(id);
+    if(!g || g.childElementCount) return;
+    const colors = ['#e4312b','#fff','#1a3f8b'];
+    let html = '';
+    for(let i=0;i<26;i++){
+      const x = i*16, y = 6 + Math.sin(i/25*Math.PI)*32, c = colors[i%3];
+      html += `<polygon points="${x},${y} ${x+14},${y} ${x+7},${y+16}" fill="${c}" opacity="0.9" transform="rotate(${(Math.random()*10-5).toFixed(1)} ${x+7} ${y})"/>`;
+    }
+    g.innerHTML = html;
+  }
+  ['flags-home','flags-pay','flags-confirm','flags-success','flags-accounts','flags-menu'].forEach(paintFlags);
+
+  // ---------- navigation ----------
+  function showScreen(id){
+    if(document.getElementById('screen-scan').classList.contains('active') && id !== 'screen-scan'){ stopCamera(); }
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    closeSheets();
+  }
+  function leaveScan(){ stopCamera(); showScreen('screen-home'); }
+
+  // ---------- toast ----------
+  let toastTimer;
+  function toast(msg){
+    let t = document.getElementById('toast-el');
+    if(!t){
+      t = document.createElement('div');
+      t.id = 'toast-el';
+      t.style.cssText = 'position:absolute; left:50%; bottom:100px; transform:translateX(-50%); background:rgba(20,20,20,0.94); color:#fff; padding:10px 18px; border-radius:20px; font-size:13px; z-index:50; opacity:0; transition:opacity .2s ease; pointer-events:none; white-space:nowrap; max-width:80%; text-align:center;';
+      document.getElementById('app').appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ t.style.opacity='0'; }, 1800);
+    return false;
+  }
+
+  // ---------- app state ----------
+  const state = {
+    phoneNumber: '010228623',
+    balances: { USD: '7.78', KHR: '0' },
+    payFromCurrency: 'USD',
+    payAmountCurrencySymbol: '$',
+    payAmountCurrencyCode: 'USD',
+    amount: '',
+    recipientName: 'AY SISOVAN',
+    senderName: 'Ay Sisovan',
+    transactions: []
+  };
+
+  function formatUSD(val){
+    const n = parseFloat(String(val).replace(/,/g,'')) || 0;
+    return n.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  }
+  function formatKHR(val){
+    const n = parseFloat(String(val).replace(/,/g,'')) || 0;
+    return n.toLocaleString('en-US', { maximumFractionDigits:0 });
+  }
+  function formatByCurrency(val, cur){ return cur === 'USD' ? formatUSD(val) : formatKHR(val); }
+  function formatAmountForDisplay(raw){
+    if(raw === '' || raw === undefined) return '0';
+    const parts = raw.split('.');
+    let intPart = parts[0] === '' ? '0' : parts[0];
+    const withCommas = Number(intPart).toLocaleString('en-US');
+    if(parts.length > 1) return withCommas + '.' + parts[1];
+    return withCommas;
+  }
+
+  function formatPhone(digits){
+    digits = String(digits).replace(/\D/g,'');
+    if(digits.length <= 3) return digits;
+    if(digits.length <= 6) return digits.slice(0,3) + ' ' + digits.slice(3);
+    return digits.slice(0,3) + ' ' + digits.slice(3,6) + ' ' + digits.slice(6);
+  }
+  function toTitle(name){
+    if(!name) return 'Unknown';
+    return name.trim().split(/\s+/).map(w=>w[0].toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+  }
+  function initials(name){
+    if(!name) return '?';
+    return name.trim().split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  }
+
+  function updatePayAccountLabel(){
+    document.getElementById('pay-account-label').innerHTML = formatPhone(state.phoneNumber) + ' <svg class="icon-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+  }
+  function updatePayBalanceLabel(){
+    if(masked){ document.getElementById('pay-balance-label').textContent = '•••• ' + state.payFromCurrency; return; }
+    document.getElementById('pay-balance-label').textContent = `${formatByCurrency(state.balances[state.payFromCurrency], state.payFromCurrency)} ${state.payFromCurrency}`;
+  }
+  function renderPhoneNumber(){
+    const f = formatPhone(state.phoneNumber);
+    updatePayAccountLabel();
+    ['sheet-acct-khr-no','sheet-acct-usd-no','acct-card-khr-no','acct-card-usd-no'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.textContent = f;
+    });
+    document.querySelectorAll('.dyn-phone').forEach(el=>el.textContent = f);
+  }
+  function renderSenderName(){
+    const init = initials(state.senderName);
+    document.querySelectorAll('.dyn-sender-initials').forEach(el=>el.textContent = init);
+    document.querySelectorAll('.dyn-sender-name').forEach(el=>el.textContent = state.senderName);
+    const gn = document.getElementById('greeting-name');
+    if(gn) gn.textContent = state.senderName.trim().split(/\s+/)[0] || state.senderName;
+  }
+  function toggleHomeBlur(){
+    document.getElementById('home-figures').classList.toggle('revealed');
+  }
+  function renderRing(){
+    const usd = parseFloat(state.balances.USD) || 0;
+    const khr = parseFloat(state.balances.KHR) || 0;
+    const khrInUsd = khr / 4100; // approx KHR->USD rate, for a composition ring only
+    const total = usd + khrInUsd;
+    // percent of ring that is "filled" gold, representing USD share of total balance
+    // when there's no balance at all, default to a neutral half-ring so it doesn't look broken
+    let pct = total > 0 ? (usd / total) : 0.5;
+    pct = Math.max(0.04, Math.min(0.96, pct)); // keep a sliver of both colors visible
+    const deg = Math.round(pct * 360) + 'deg';
+    ['home-ring','accounts-ring'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.style.setProperty('--ring-pct', deg);
+    });
+  }
+  function renderBalances(){
+    document.getElementById('sheet-acct-khr-bal').textContent = formatKHR(state.balances.KHR);
+    document.getElementById('sheet-acct-usd-bal').textContent = formatUSD(state.balances.USD);
+    document.getElementById('acct-pill-khr').textContent = formatKHR(state.balances.KHR);
+    document.getElementById('acct-pill-usd').textContent = formatUSD(state.balances.USD);
+    document.getElementById('acct-card-khr-bal').textContent = formatKHR(state.balances.KHR);
+    document.getElementById('acct-card-usd-bal').textContent = formatUSD(state.balances.USD);
+    document.getElementById('home-khr').textContent = formatKHR(state.balances.KHR);
+    document.getElementById('home-usd').textContent = formatUSD(state.balances.USD);
+    updatePayBalanceLabel();
+    renderRing();
+  }
+
+  // ---------- camera + QR detection ----------
+  let mediaStream = null, cameraActive = false, scanRAF = null;
+  async function startCamera(){
+    const video = document.getElementById('qr-video');
+    const hint = document.getElementById('scan-hint');
+
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      cameraActive = false;
+      hint.textContent = 'This browser can\'t access the camera here (needs https://). Tap the frame to simulate, or use Select QR.';
+      return;
+    }
+    if(!window.isSecureContext){
+      cameraActive = false;
+      hint.textContent = 'Camera needs a secure (https://) page. This file is running from ' + location.protocol + ' — host it over https to enable live scanning. Tap the frame to simulate, or use Select QR.';
+      return;
+    }
+
+    try{
+      mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+      video.srcObject = mediaStream;
+      await video.play();
+      video.classList.add('on');
+      cameraActive = true;
+      hint.textContent = 'Point your camera at a QR code';
+      scanLoop();
+    }catch(e){
+      cameraActive = false;
+      video.classList.remove('on');
+      if(e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError'){
+        hint.textContent = 'Camera permission denied — allow camera access in your browser/site settings, then reopen this screen. Or tap the frame to simulate.';
+      }else if(e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError'){
+        hint.textContent = 'No camera found on this device. Tap the frame to simulate, or use Select QR.';
+      }else if(e.name === 'NotReadableError'){
+        hint.textContent = 'Camera is busy in another app. Close it and reopen this screen, or tap the frame to simulate.';
+      }else{
+        hint.textContent = 'Camera unavailable (' + (e.name || 'unknown error') + '). Tap the frame to simulate, or use Select QR.';
+      }
+    }
+  }
+  function stopCamera(){
+    if(mediaStream){ mediaStream.getTracks().forEach(t=>t.stop()); mediaStream = null; }
+    const video = document.getElementById('qr-video');
+    video.classList.remove('on');
+    video.srcObject = null;
+    cameraActive = false;
+    if(scanRAF){ cancelAnimationFrame(scanRAF); scanRAF = null; }
+  }
+  function scanLoop(){
+    const video = document.getElementById('qr-video');
+    const canvas = document.getElementById('qr-canvas');
+    const ctx = canvas.getContext('2d');
+    function tick(){
+      if(!cameraActive) return;
+      if(video.readyState === video.HAVE_ENOUGH_DATA && window.jsQR){
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imgData.data, imgData.width, imgData.height);
+        if(code && code.data){ onQRDetected(code.data); return; }
+      }
+      scanRAF = requestAnimationFrame(tick);
+    }
+    scanRAF = requestAnimationFrame(tick);
+  }
+  function frameTap(){
+    if(!cameraActive){
+      onQRDetected('AY SISOVAN');
+    }
+  }
+  document.getElementById('qr-file-input').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      const img = new Image();
+      img.onload = function(){
+        const canvas = document.getElementById('qr-canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        if(window.jsQR){
+          const code = jsQR(imgData.data, imgData.width, imgData.height);
+          if(code && code.data){ onQRDetected(code.data); }
+          else{ toast('Invalid QR — no QR code detected in that image'); }
+        }else{
+          toast('QR engine still loading — try again in a moment');
+        }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  });
+
+  function parseQRPayload(text){
+    let name = null, amount = null;
+    try{
+      let i = 0;
+      while(i + 4 <= text.length){
+        const tag = text.substr(i,2);
+        const len = parseInt(text.substr(i+2,2), 10);
+        if(isNaN(len) || len < 0) break;
+        const val = text.substr(i+4, len);
+        if(val.length < len) break;
+        if(tag === '59') name = val;
+        if(tag === '54') amount = val;
+        i += 4 + len;
+      }
+    }catch(e){}
+    if(!name){
+      const trimmed = text.trim();
+      if(trimmed.length > 0 && trimmed.length < 40 && !/^\d+$/.test(trimmed)) name = trimmed.toUpperCase();
+    }
+    return { name: (name || 'UNKNOWN PAYEE').trim(), amount: amount };
+  }
+
+  function onQRDetected(rawText){
+    stopCamera();
+    const flash = document.getElementById('flash');
+    flash.classList.add('flash');
+    const parsed = parseQRPayload(rawText);
+    toast('QR detected: ' + parsed.name);
+    setTimeout(()=>{
+      flash.classList.remove('flash');
+      goToPayWithRecipient(parsed.name, parsed.amount);
+    }, 260);
+  }
+  function goToPayWithRecipient(name, presetAmount){
+    state.recipientName = name;
+    document.getElementById('pay-name').textContent = name;
+    document.getElementById('pay-avatar').textContent = initials(name);
+    const amtNum = presetAmount !== null && presetAmount !== undefined ? parseFloat(presetAmount) : NaN;
+    state.amount = (!isNaN(amtNum) && amtNum > 0) ? String(amtNum) : '';
+    updateAmountDisplay();
+    showScreen('screen-pay');
+  }
+  function openScan(){
+    document.getElementById('scan-hint').textContent = 'Starting camera…';
+    showScreen('screen-scan');
+    startCamera();
+  }
+
+  // ---------- keypad ----------
+  function pressKey(k){
+    if(k === 'back'){ state.amount = state.amount.slice(0,-1); }
+    else if(k === '.'){ if(!state.amount.includes('.')) state.amount += (state.amount===''?'0.':'.'); }
+    else { if(state.amount === '0') state.amount = k; else state.amount += k; }
+    updateAmountDisplay();
+  }
+  function updateAmountDisplay(){
+    document.getElementById('amount-display').textContent = formatAmountForDisplay(state.amount);
+  }
+
+  // ---------- masking ----------
+  let masked = false;
+  function toggleMask(){
+    masked = !masked;
+    updatePayBalanceLabel();
+  }
+
+  // ---------- sheets ----------
+  function openSheet(id){
+    document.getElementById('sheet-backdrop').classList.add('open');
+    document.getElementById(id).classList.add('open');
+  }
+  function closeSheets(){
+    document.getElementById('sheet-backdrop').classList.remove('open');
+    document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));
+  }
+  function selectAccount(cur){
+    state.payFromCurrency = cur;
+    updatePayAccountLabel();
+    updatePayBalanceLabel();
+    masked = false;
+    closeSheets();
+  }
+  function selectCurrency(sym){
+    state.payAmountCurrencySymbol = sym;
+    state.payAmountCurrencyCode = sym === '$' ? 'USD' : 'KHR';
+    document.getElementById('currency-symbol').textContent = sym + ' ▾';
+    closeSheets();
+  }
+
+  // ---------- edit sheet (balance / phone) ----------
+  let editMode = null;
+  function openEditSheet(mode){
+    editMode = mode;
+    const input = document.getElementById('edit-input');
+    const title = document.getElementById('edit-title');
+    if(mode === 'USD'){ title.textContent = 'Edit USD Balance'; input.value = formatUSD(state.balances.USD); input.setAttribute('inputmode','decimal'); input.type='text'; }
+    else if(mode === 'KHR'){ title.textContent = 'Edit KHR Balance'; input.value = formatKHR(state.balances.KHR); input.setAttribute('inputmode','decimal'); input.type='text'; }
+    else if(mode === 'phone'){ title.textContent = 'Edit Phone Number'; input.value = state.phoneNumber; input.setAttribute('inputmode','numeric'); input.type='text'; }
+    else if(mode === 'name'){ title.textContent = 'Edit Your Name'; input.value = state.senderName; input.setAttribute('inputmode','text'); input.type='text'; }
+    openSheet('sheet-edit');
+    setTimeout(()=>input.focus(), 280);
+  }
+  function saveEdit(){
+    const val = document.getElementById('edit-input').value.trim();
+    if(editMode === 'USD'){
+      const num = parseFloat(val.replace(/,/g,''));
+      if(isNaN(num) || num < 0){ toast('Enter a valid amount'); return; }
+      state.balances.USD = num.toFixed(2);
+    }else if(editMode === 'KHR'){
+      const num = parseFloat(val.replace(/,/g,''));
+      if(isNaN(num) || num < 0){ toast('Enter a valid amount'); return; }
+      state.balances.KHR = String(Math.round(num));
+    }else if(editMode === 'phone'){
+      const digits = val.replace(/\D/g,'');
+      if(digits.length < 8){ toast('Enter a valid phone number'); return; }
+      state.phoneNumber = digits;
+    }else if(editMode === 'name'){
+      if(val.length < 2){ toast('Enter a valid name'); return; }
+      state.senderName = val;
+    }
+    renderBalances();
+    renderPhoneNumber();
+    renderSenderName();
+    closeSheets();
+    toast('Saved');
+  }
+
+  // ---------- confirm ----------
+  function goConfirm(){
+    const amtNum = parseFloat(state.amount) || 0;
+    document.getElementById('confirm-amount').textContent = `${formatByCurrency(amtNum, state.payAmountCurrencyCode)} ${state.payAmountCurrencySymbol}`;
+    document.getElementById('confirm-name').textContent = toTitle(state.recipientName);
+    document.getElementById('confirm-payfrom').textContent = state.senderName;
+    document.getElementById('confirm-acct').textContent = `${formatPhone(state.phoneNumber)} (${state.payFromCurrency})`;
+    document.getElementById('confirm-debit').textContent = `-${formatByCurrency(amtNum, state.payFromCurrency)} ${state.payFromCurrency}`;
+    showScreen('screen-confirm');
+  }
+
+  // ---------- PIN ----------
+  let pinBuffer = '';
+  function goPin(){
+    pinBuffer = '';
+    renderPinDots();
+    document.getElementById('pin-account').textContent = formatPhone(state.phoneNumber);
+    showScreen('screen-pin');
+  }
+  function renderPinDots(){
+    document.querySelectorAll('.pin-dot').forEach((el,i)=>{ el.classList.toggle('filled', i < pinBuffer.length); });
+  }
+  function pinPress(d){
+    if(pinBuffer.length >= 6) return;
+    pinBuffer += d;
+    renderPinDots();
+    if(pinBuffer.length === 6){ setTimeout(checkPin, 150); }
+  }
+  function checkPin(){
+    if(pinBuffer === '111111'){
+      pinBuffer = '';
+      renderPinDots();
+      goSuccess();
+    }else{
+      const wrap = document.getElementById('pin-dots');
+      wrap.classList.add('shake');
+      toast('Incorrect PIN — demo PIN is 111111');
+      setTimeout(()=>{
+        wrap.classList.remove('shake');
+        pinBuffer = '';
+        renderPinDots();
+      }, 450);
+    }
+  }
+
+  // ---------- success ----------
+  function formatCambodiaDateTime(){
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { timeZone: 'Asia/Phnom_Penh', month: 'short', day: 'numeric', year: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Phnom_Penh', hour: 'numeric', minute: '2-digit', hour12: true });
+    return `${dateStr} | ${timeStr} (ICT)`;
+  }
+  function goSuccess(){
+    const amtNum = parseFloat(state.amount) || 0;
+    const recipientTitle = toTitle(state.recipientName);
+    const extRef = Math.random().toString(16).slice(2,10);
+    const refNo = String(Math.floor(10000000000 + Math.random()*89999999999));
+    const dateStr = formatCambodiaDateTime();
+    const acctLine = `${formatPhone(state.phoneNumber)} (${state.payFromCurrency})`;
+    const debitStr = `-${formatByCurrency(amtNum, state.payFromCurrency)} ${state.payFromCurrency}`;
+    const amtStr = `${formatByCurrency(amtNum, state.payAmountCurrencyCode)} ${state.payAmountCurrencySymbol}`;
+
+    document.getElementById('success-amount').textContent = amtStr;
+    document.getElementById('success-name').textContent = recipientTitle;
+    document.getElementById('success-paidfrom').textContent = state.senderName;
+    document.getElementById('success-acctno').textContent = acctLine;
+    document.getElementById('success-debit').textContent = debitStr;
+    document.getElementById('success-toacct').textContent = recipientTitle;
+    document.getElementById('success-ref').textContent = extRef;
+    document.getElementById('success-refno').textContent = refNo;
+    document.getElementById('success-date').textContent = dateStr;
+    showScreen('screen-success');
+
+    state.transactions.unshift({
+      name: recipientTitle,
+      amount: amtNum,
+      currency: state.payFromCurrency,
+      symbol: state.payAmountCurrencySymbol,
+      paidFrom: state.senderName,
+      acctLine: acctLine,
+      debitStr: debitStr,
+      refNo: refNo,
+      dateStr: dateStr
+    });
+    renderHistory();
+  }
+  function resetAndHome(){
+    state.amount = '';
+    updateAmountDisplay();
+    showScreen('screen-home');
+  }
+
+  // ---------- history ----------
+  function renderHistory(){
+    const list = document.getElementById('history-list');
+    if(!list) return;
+    if(state.transactions.length === 0){
+      list.innerHTML = '<div class="hist-empty">No transactions yet — scan a QR to get started.</div>';
+      return;
+    }
+    list.innerHTML = state.transactions.map((t, idx) => `
+      <div class="hist-row" onclick="openHistoryDetail(${idx})">
+        <div class="hist-avatar"><span>KHQR</span></div>
+        <div class="hist-mid">
+          <div class="hist-label">Transaction QR to</div>
+          <div class="hist-name">${t.name}</div>
+        </div>
+        <div class="hist-amt neg">-${formatByCurrency(t.amount, t.currency)} ${t.symbol}</div>
+      </div>
+    `).join('');
+  }
+  let currentHistoryIdx = null;
+  function openHistoryDetail(idx){
+    const t = state.transactions[idx];
+    if(!t) return;
+    currentHistoryIdx = idx;
+    document.getElementById('hd-name').textContent = t.name;
+    document.getElementById('hd-amount').textContent = `${formatByCurrency(t.amount, t.currency)} ${t.symbol}`;
+    document.getElementById('hd-paidfrom').textContent = t.paidFrom;
+    document.getElementById('hd-acctno').textContent = t.acctLine;
+    document.getElementById('hd-debit').textContent = t.debitStr;
+    document.getElementById('hd-receiver').textContent = t.name;
+    document.getElementById('hd-amt2').textContent = `${formatByCurrency(t.amount, t.currency)} ${t.currency}`;
+    document.getElementById('hd-refno').textContent = t.refNo;
+    document.getElementById('hd-date').textContent = t.dateStr;
+    openSheet('sheet-history-detail');
+  }
+  function copyRefNo(){
+    const t = state.transactions[currentHistoryIdx];
+    if(!t) return;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t.refNo).then(()=>toast('Reference number copied')).catch(()=>toast(t.refNo));
+    }else{
+      toast(t.refNo);
+    }
+  }
+
+  // ---------- init ----------
+  renderPhoneNumber();
+  renderBalances();
+  renderSenderName();
+  renderHistory();
+</script>
+
+</body>
+</html>
